@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Use placeholders to prevent synchronous crash during module initialization
-// if environment variables are missing in Vercel
-const supabaseUrl = process.env.SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseKey = process.env.SUPABASE_KEY || 'placeholder-key';
+// if environment variables are missing.
+// Vite exposes env variables prefixed with VITE_ on import.meta.env
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || 'placeholder-key';
 
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_KEY) {
   console.warn("⚠️ Supabase URL or Key is missing! Database operations will fail.");
 }
 

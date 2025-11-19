@@ -10,10 +10,10 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      // Shim process.env so standard Node.js style env vars work in the browser
+      // Shim process.env.API_KEY for Google GenAI SDK compatibility
       'process.env.API_KEY': JSON.stringify(env.API_KEY),
-      'process.env.SUPABASE_URL': JSON.stringify(env.SUPABASE_URL),
-      'process.env.SUPABASE_KEY': JSON.stringify(env.SUPABASE_KEY)
+      // Note: VITE_SUPABASE_URL and VITE_SUPABASE_KEY are automatically 
+      // exposed to import.meta.env by Vite because of the VITE_ prefix.
     }
   }
 })
