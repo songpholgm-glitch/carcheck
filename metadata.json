@@ -1,0 +1,7 @@
+{
+  "name": "Security Gate Log",
+  "description": "ระบบบันทึกการเข้า-ออกรถยนต์สำหรับเจ้าหน้าที่รักษาความปลอดภัย พร้อมระบบตรวจสอบรถภายในอัตโนมัติและ OCR ด้วย Gemini",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
