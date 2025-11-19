@@ -1,7 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-// ตรวจสอบ API Key จาก environment variable
-const apiKey = process.env.API_KEY || '';
+const apiKey = import.meta.env.VITE_API_KEY || '';
 
 const ai = new GoogleGenAI({ apiKey });
 
@@ -17,12 +16,11 @@ export const analyzeLicensePlate = async (base64Image: string): Promise<string> 
   }
 
   try {
-    // ตัด header "data:image/jpeg;base64," ออกถ้ามี
     const cleanBase64 = base64Image.includes('base64,') 
       ? base64Image.split('base64,')[1] 
       : base64Image;
 
-    const model = 'gemini-2.5-flash'; // ใช้ Flash เพื่อความเร็ว
+    const model = 'gemini-2.5-flash';
     
     const prompt = `
       คุณคือระบบ AI สำหรับอ่านป้ายทะเบียนรถยนต์ไทย
@@ -46,7 +44,7 @@ export const analyzeLicensePlate = async (base64Image: string): Promise<string> 
           { text: prompt },
           {
             inlineData: {
-              mimeType: 'image/jpeg', // สมมติว่าเป็น jpeg จากกล้องมือถือ
+              mimeType: 'image/jpeg',
               data: cleanBase64
             }
           }
