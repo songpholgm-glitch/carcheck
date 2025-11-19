@@ -12,7 +12,8 @@ export default defineConfig(({ mode }) => {
     define: {
       // Shim process.env so standard Node.js style env vars work in the browser
       'process.env.API_KEY': JSON.stringify(env.API_KEY),
-      'process.env.DATABASE_URL': JSON.stringify(env.DATABASE_URL)
+      'process.env.SUPABASE_URL': JSON.stringify(env.SUPABASE_URL),
+      'process.env.SUPABASE_KEY': JSON.stringify(env.SUPABASE_KEY)
     }
   }
 })

@@ -4,64 +4,89 @@ import { EntryForm } from './components/EntryForm';
 import { DailyReport } from './components/DailyReport';
 import { VehicleDatabase } from './components/VehicleDatabase';
 import { RegisteredVehicle, LogEntry } from './types';
+import { databaseService } from './services/databaseService';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('entry');
   
-  // Simulated Database State (In a real app, these would fetch from Postgres via API)
   const [registeredVehicles, setRegisteredVehicles] = useState<RegisteredVehicle[]>([]);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load data from localStorage on mount (Mocking DB load)
-  useEffect(() => {
+  // Load data from Supabase
+  const fetchData = async () => {
     try {
-      const savedVehicles = localStorage.getItem('security_registered_vehicles');
-      const savedLogs = localStorage.getItem('security_logs');
-      
-      if (savedVehicles) setRegisteredVehicles(JSON.parse(savedVehicles));
-      else {
-        // Seed initial data
-        setRegisteredVehicles([
-           { id: '1', plateNumber: '1กก 9999', ownerName: 'ผอ. สมชาย', department: 'บริหาร', addedAt: new Date().toISOString() }
-        ]);
-      }
-
-      if (savedLogs) setLogs(JSON.parse(savedLogs));
-    } catch (e) {
-      console.error("Failed to load data", e);
+      setIsLoading(true);
+      const [vehiclesData, logsData] = await Promise.all([
+        databaseService.getVehicles(),
+        databaseService.getLogs()
+      ]);
+      setRegisteredVehicles(vehiclesData);
+      setLogs(logsData);
+    } catch (err) {
+      console.error("Failed to fetch data:", err);
+      setError("ไม่สามารถเชื่อมต่อฐานข้อมูลได้");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
-  // Persist data changes (Mocking DB save)
-  useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem('security_registered_vehicles', JSON.stringify(registeredVehicles));
+  const handleAddLog = async (log: LogEntry) => {
+    // Optimistic UI update (optional) or Wait for DB
+    // Here we wait for DB to ensure data integrity
+    const newLog = await databaseService.addLog(log);
+    if (newLog) {
+      setLogs(prev => [newLog, ...prev]);
+    } else {
+      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลลงฐานข้อมูล");
     }
-  }, [registeredVehicles, isLoading]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem('security_logs', JSON.stringify(logs));
-    }
-  }, [logs, isLoading]);
-
-  const handleAddLog = (log: LogEntry) => {
-    setLogs(prev => [log, ...prev]);
   };
 
-  const handleAddVehicle = (vehicle: RegisteredVehicle) => {
-    setRegisteredVehicles(prev => [...prev, vehicle]);
+  const handleAddVehicle = async (vehicle: RegisteredVehicle) => {
+    const newVehicle = await databaseService.addVehicle(vehicle);
+    if (newVehicle) {
+      setRegisteredVehicles(prev => [newVehicle, ...prev]);
+    } else {
+      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลรถ");
+    }
   };
 
-  const handleRemoveVehicle = (id: string) => {
-    setRegisteredVehicles(prev => prev.filter(v => v.id !== id));
+  const handleRemoveVehicle = async (id: string) => {
+    const success = await databaseService.removeVehicle(id);
+    if (success) {
+      setRegisteredVehicles(prev => prev.filter(v => v.id !== id));
+    } else {
+      alert("ไม่สามารถลบข้อมูลได้");
+    }
   };
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-100 text-slate-500">Loading System...</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-100 text-slate-500">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-security-600 mb-4"></div>
+        Loading System...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-100 text-red-500">
+        <div className="text-xl font-bold mb-2">Error</div>
+        {error}
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-security-600 text-white rounded hover:bg-security-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   return (
